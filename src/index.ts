@@ -17,20 +17,37 @@ const wabt = await initWabt();
 
 type WabtParserFunc = Awaited<ReturnType<typeof initWabt>>["parseWat"];
 
+/** See @see {@link https://github.com/AssemblyScript/wabt.js/blob/main/README.md|`wabt.WasmFeatures`} for more info. @see WasmParserOptions */
 type WasmParserOptions = Parameters<WabtParserFunc>[2];
+
+/** See @see {@link https://github.com/AssemblyScript/wabt.js/blob/main/README.md|`wabt.ToBinaryOptions`} for more info. @see WasmGeneratorOptions */
 type WasmGeneratorOptions = Parameters<ReturnType<WabtParserFunc>["toBinary"]>[0];
 
 const WASM_TARGETS = ["browser", "node"] as const;
+
+/** The available targets that is supported by `vite-plugin-wat2wasm`. @see WasmTarget */
 type WasmTarget = typeof WASM_TARGETS[number];
 
+/** The configuration settings for `vite-plugin-wat2wasm`. @see Wat2WasmOptions */
 interface Wat2WasmOptions {
+    /** Determines whether `.wasm` files will be outputted after compiling `.wat` files. Useful if you want other bundlers/compilers to take over generation of `.wasm` files. @default true */
     emitWasm?: boolean;
+
+    /** Selects the targets that can use the `.wat` modules. "all" means that all targets available in @see {@link WasmTarget|`WasmTarget`} can use said modules. @default "all" */
     target?: "all" | WasmTarget | WasmTarget[];
 
+    /** Configures `.wasm` features you wish to enable for `vite-plugin-wat2wasm`. @default {} @see {@link WasmParserOptions|`WasmParserOptions`} */
     parser?: WasmParserOptions;
+
+    /** Configures how `vite-plugin-wat2wasm` to generate `.wasm` files. @default {} @see {@link WasmGeneratorOptions|`WasmGeneratorOptions`} */
     generator?: WasmGeneratorOptions;
 }
 
+/** Enables compilation of `.wat` files and generation of `.wasm`, with modifiable settings.
+ *
+ * @param options - the configuration options for `vite-plugin-wat2wasm`. @see {@link Wat2WasmOptions|`Wat2WasmOptions`}
+ * @returns a Vite plugin object that allows for compilation of `.wat` files. @see {@link https://vite.dev/guide/api-plugin|`Plugin`}
+ */
 const watCompilerPlugin = (options: Wat2WasmOptions = {}): Plugin => {
     const {
         target: optionsTarget = "all",
@@ -156,4 +173,4 @@ const watCompilerPlugin = (options: Wat2WasmOptions = {}): Plugin => {
 };
 
 export default watCompilerPlugin;
-export type { Wat2WasmOptions, WasmParserOptions, WasmGeneratorOptions };
+export type { Wat2WasmOptions, WasmParserOptions, WasmGeneratorOptions, WasmTarget };
