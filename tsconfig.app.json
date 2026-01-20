@@ -1,0 +1,18 @@
+{
+    "extends": ["./tsconfig.json"],
+    "include": ["src", "tests"],
+
+    "compilerOptions": {
+        // Modules
+        "types": ["./src/modules.d.ts"],
+
+        // Emit
+        "declaration": true,
+        "emitDeclarationOnly": true,
+        "outDir": "dist",
+
+        // Language and Environment
+        "lib": ["ESNext"],
+        "target": "ESNext"
+    }
+}

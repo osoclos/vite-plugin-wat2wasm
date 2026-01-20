@@ -1,0 +1,51 @@
+{
+    "name": "vite-plugin-wat2wasm",
+    "type": "module",
+    "version": "1.0.0",
+    "description": "Enable .wat compilation and integrate generated WebAssembly modules into your codebase with type support",
+
+    "author": "osoclos",
+    "license": "MIT",
+
+    "homepage": "https://github.com/osoclos/vite-plugin-wat2wasm#readme",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/osoclos/vite-plugin-wat2wasm.git"
+    },
+
+    "bugs": { "url": "https://github.com/osoclos/vite-plugin-wat2wasm/issues" },
+
+    "main": "./dist/index.js",
+    "module": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+
+    "files": ["dist"],
+    "exports": {
+        ".": "./dist/index.js",
+        "./module-types": "./dist/modules.d.ts",
+
+        "./package.json": "./package.json"
+    },
+
+    "scripts": {
+        "dev": "tsdown --watch && bun run scripts/post-build.ts",
+        "test": "vitest",
+
+        "build": "tsdown && bun run scripts/post-build.ts",
+        "prepublishOnly": "bun run build",
+
+        "check-types": "tsc --noEmit"
+    },
+
+    "dependencies": { "wabt": "^1.0.39" },
+    "devDependencies": {
+        "@types/node": "^25.0.3",
+        "@vitest/browser-preview": "^4.0.17",
+        "bumpp": "^10.3.2",
+        "rolldown": "^1.0.0-beta.60",
+        "tsdown": "^0.18.3",
+        "typescript": "~5.9.3",
+        "vite": "^7.3.1",
+        "vitest": "^4.0.16"
+    }
+}
