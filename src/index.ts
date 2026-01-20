@@ -20,7 +20,34 @@ type WabtParserFunc = Awaited<ReturnType<typeof initWabt>>["parseWat"];
 type WasmParserOptions = Parameters<WabtParserFunc>[2];
 type WasmGeneratorOptions = Parameters<ReturnType<WabtParserFunc>["toBinary"]>[0];
 
-const watCompilerPlugin = (parserOptions: WasmParserOptions = {}, generatorOptions: WasmGeneratorOptions = {}): Plugin => {
+const WASM_TARGETS = ["browser", "node"] as const;
+type WasmTarget = typeof WASM_TARGETS[number];
+
+interface Wat2WasmOptions {
+    emitWasm?: boolean;
+    target?: "all" | WasmTarget | WasmTarget[];
+
+    parser?: WasmParserOptions;
+    generator?: WasmGeneratorOptions;
+}
+
+const watCompilerPlugin = (options: Wat2WasmOptions = {}): Plugin => {
+    const {
+        target: optionsTarget = "all",
+
+        parser: parserOptions = {},
+        generator: generatorOptions = {}
+    } = options;
+
+    const targets =
+        optionsTarget === "all"
+            ? WASM_TARGETS as unknown as WasmTarget[] :
+        typeof optionsTarget === "string"
+            ? [optionsTarget] :
+        optionsTarget.length === 0
+            ? WASM_TARGETS as unknown as WasmTarget[]
+            : optionsTarget;
+
     const importedWatFiles = new Map<string, Uint8Array>();
 
     const compileWat = (watPath: string): Uint8Array => {
@@ -40,7 +67,7 @@ const watCompilerPlugin = (parserOptions: WasmParserOptions = {}, generatorOptio
             const watRelPath = match[3];
 
             const watAbsPath = (await ctx.resolve(watRelPath, codePath))?.id ?? null;
-            if (watAbsPath === null) continue;
+            if (watAbsPath === null) return code;
 
             const bfr = compileWat(watAbsPath);
 
@@ -73,34 +100,50 @@ const watCompilerPlugin = (parserOptions: WasmParserOptions = {}, generatorOptio
         name: "wat-compiler",
         enforce: "post",
 
-        load(id: string) {
-            if (!id.endsWith(".wat")) return null;
+        async load(id: string) {
+            const emitWasm = options.emitWasm ?? ("environment" in this && this.environment.mode === "build");
+
+            if (emitWasm || !id.endsWith(".wat")) return null;
 
             const bfr = compileWat(id);
             const str = new TextDecoder("utf-8").decode(bfr).replaceAll("`", "\\`").replaceAll("\n", "\\n").replaceAll("\r", "\\r");
 
             return (
-                "let hasInitialized = false;" + "\n" +
-                "" + "\n" +
-                "export default async function init(imports = {}) {" + "\n" +
-                `    if (hasInitialized) throw new Error("Module at \\"${path.resolve(this.environment.config.base, id)}\\" has already been initialized!");` + "\n" +
-                "    hasInitialized = true;" + "\n" +
-                "" + "\n" +
-                `    return WebAssembly.instantiate(new TextEncoder().encode(\`${str}\`), imports).then(({ instance: { exports } }) => exports);` + "\n" +
-                "}" + "\n"
+                `const init = async (imports = {}) => WebAssembly.instantiate(new TextEncoder().encode(\`${str}\`), imports).then(({ instance: { exports } }) => exports);` + "\n" +
+                "export default init;" + "\n"
             );
         },
 
         async transform(code: string, id: string) {
-            if (this.environment.mode !== "build" || !JS_FILE_EXT_REG.test(id)) return null;
+            const emitWasm = options.emitWasm ?? ("environment" in this && this.environment.mode === "build");
 
-            code = await transformImports(this as any, code, id, IMPORT_DEFAULT_REG, (path, name) => `const ${name} = async (imports) => WebAssembly.instantiateStreaming(fetch("${path}"), imports).then(({ instance: { exports } }) => exports);`);
-            code = await transformImports(this as any, code, id, IMPORT_STAR_REG   , (path, name) => `const ${name} = { default: async (imports) => WebAssembly.instantiateStreaming(fetch("${path}"), imports).then(({ instance: { exports } }) => exports) };`);
+            if (!emitWasm || !JS_FILE_EXT_REG.test(id)) return null;
 
+            const initWasmFuncName = "__" + crypto.randomBytes(4).toString("hex");
+            const generateInitWasmFunc =
+                `const ${initWasmFuncName} = (path, imports) => {` + "\n" +
+                (targets.includes("node") ?
+                "    if (typeof process !== \"undefined\" && \"versions\" in process && \"node\" in process.versions) return WebAssembly.instantiate(require(\"fs\").readFileSync(path), imports);" + "\n" :
+                "") +
+                (targets.includes("browser") ?
+                `    if (typeof window !== "undefined" && typeof document !== "undefined") return WebAssembly.instantiateStreaming(fetch(path), imports);` + "\n" :
+                "") +
+                "" + "\n" +
+                "    throw new Error(\"This JavaScript runtime is not supported by this module. If this is a mistake, adjust your target to fit your specific runtime.\");" + "\n" +
+                "};" + "\n";
+
+            const generateInitModuleFunc = (path: string): string => `async (imports) => ${initWasmFuncName}("${path}", imports).then(({ instance: { exports } }) => exports)`;
+
+            const originalCode = code;
+
+            code = await transformImports(this as any, code, id, IMPORT_DEFAULT_REG, (path, name) => `const ${name} = ${generateInitModuleFunc(path)};`);
+            code = await transformImports(this as any, code, id, IMPORT_STAR_REG   , (path, name) => `const ${name} = { default: ${generateInitModuleFunc(path)} };`);
+
+            if (code !== originalCode) code = generateInitWasmFunc + code;
             return code;
         },
 
-        generateBundle() {
+        buildEnd() {
             for (const [distPath, bfr] of importedWatFiles)
                 this.emitFile({
                     type: "asset",
