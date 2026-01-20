@@ -156,3 +156,4 @@ const watCompilerPlugin = (options: Wat2WasmOptions = {}): Plugin => {
 };
 
 export default watCompilerPlugin;
+export type { Wat2WasmOptions, WasmParserOptions, WasmGeneratorOptions };
