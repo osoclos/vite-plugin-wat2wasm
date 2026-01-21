@@ -30,7 +30,7 @@ type WasmTarget = typeof WASM_TARGETS[number];
 
 /** The configuration settings for `vite-plugin-wat2wasm`. @see Wat2WasmOptions */
 interface Wat2WasmOptions {
-    /** Determines whether `.wasm` files will be outputted after compiling `.wat` files. Useful if you want other bundlers/compilers to take over generation of `.wasm` files. @default true */
+    /** Determines whether `.wasm` files will be outputted after compiling `.wat` files during build. Useful if you want other bundlers/compilers to take over generation of `.wasm` files. @default true */
     emitWasm?: boolean;
 
     /** Selects the targets that can use the `.wat` modules. "all" means that all targets available in @see {@link WasmTarget|`WasmTarget`} can use said modules. @default "all" */
