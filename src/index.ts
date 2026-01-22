@@ -123,7 +123,7 @@ const watCompilerPlugin = (options: Wat2WasmOptions = {}): Plugin => {
             if (emitWasm || !id.endsWith(".wat")) return null;
 
             const bfr = compileWat(id);
-            const str = new TextDecoder("utf-8").decode(bfr).replaceAll("`", "\\`").replaceAll("\n", "\\n").replaceAll("\r", "\\r");
+            const str = new TextDecoder("utf-8").decode(bfr).replaceAll("\\", "\\\\").replaceAll("`", "\\`").replaceAll("\n", "\\n").replaceAll("\r", "\\r");
 
             return (
                 `const init = async (imports = {}) => WebAssembly.instantiate(new TextEncoder().encode(\`${str}\`), imports).then(({ instance: { exports } }) => exports);` + "\n" +
