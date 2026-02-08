@@ -103,7 +103,7 @@ The configuration settings for `vite-plugin-wat2wasm`.
 
 - `emitWasm?: boolean = true` - Determines whether `.wasm` files will be outputted after compiling `.wat` files during build. Useful if you want other bundlers/compilers to take over generation of `.wasm` files.
 
-- `target?: "all" |` [`WasmTarget`](#wasmtarget) `| WasmTarget[] = "all"` - Selects the targets that can use the `.wat` modules. "all" means that all targets available in [`WasmTarget`](#wasmtarget) can use said modules.
+- `target?: "all" |` [`WasmTarget`](#wasmtarget) `| WasmTarget[] = "all"` - Selects the targets that can use the `.wat` modules. `"all"` means that all targets available in [`WasmTarget`](#wasmtarget) are targeted and can use said modules.
 
 - `parser?:` [`WasmParserOptions`](#wasmparseroptions) `= {}` -
 Configures `.wasm` features you wish to enable for `vite-plugin-wat2wasm`.
