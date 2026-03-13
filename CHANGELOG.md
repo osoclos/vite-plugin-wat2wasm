@@ -2,6 +2,12 @@
 
 This file details the changes that happen in `vite-plugin-wat2wasm`.
 
+## v1.2.4 (13/03/26 - 10:05pm|UTC+8)
+
+- Fixes
+
+- - Fixed an error regarding WebAssembly error handling.
+
 ## v1.2.3 (13/03/26 - 9:59pm|UTC+8)
 
 - Fixes
