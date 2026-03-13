@@ -1,7 +1,7 @@
 {
     "name": "vite-plugin-wat2wasm",
     "type": "module",
-    "version": "1.2.5",
+    "version": "1.2.6",
     "description": "Enable .wat compilation and integrate generated WebAssembly modules into your codebase with type support",
 
     "author": "osoclos",
@@ -37,7 +37,7 @@
         "test-dev"  : "vitest",
         "test-build": "vite build --watch --config tests/build/vite.config.ts && vite preview --config tests/build/vite.config.ts",
 
-        "bump": "tsdown && bumpp"
+        "bump": "tsdown && bun run scripts/post-build.ts && bumpp"
     },
 
     "dependencies": { "wabt": "^1.0.39" },
