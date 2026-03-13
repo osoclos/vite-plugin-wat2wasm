@@ -2,6 +2,12 @@
 
 This file details the changes that happen in `vite-plugin-wat2wasm`.
 
+## v1.2.1 (13/03/26 - 4:28pm|UTC+8)
+
+- Fixes
+
+- - Emitted files now follow its relative location from the root given by Vite when building.
+
 ## v1.2.0 (25/01/26 - 12:54am|UTC+8)
 
 - Additions
