@@ -2,6 +2,12 @@
 
 This file details the changes that happen in `vite-plugin-wat2wasm`.
 
+## v1.2.2 (13/03/26 - 6:30pm|UTC+8)
+
+- Fixes
+
+- - Fixed configurations whereby there is no valid environment to choose.
+
 ## v1.2.1 (13/03/26 - 4:28pm|UTC+8)
 
 - Fixes
