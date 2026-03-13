@@ -28,10 +28,11 @@
     },
 
     "scripts": {
-        "dev-dev"  : "concurrently 'tsdown --watch' 'vitest watch'",
-        "dev-build": "concurrently 'tsdown --watch' 'vite build --watch --config tests/build/vite.config.ts' 'vite preview --config tests/build/vite.config.ts'",
+        "dev-dev"  : "concurrently 'bun run build' 'vitest watch'",
+        "dev-build": "concurrently 'bun run build' 'vite build --watch --config tests/build/vite.config.ts' 'vite preview --config tests/build/vite.config.ts'",
 
-        "build": "tsdown",
+        "build": "tsdown && bun run scripts/post-build.ts",
+        "build-watch": "tsdown --watch --on-success 'bun run scripts/post-build.ts'",
 
         "test-dev"  : "vitest",
         "test-build": "vite build --watch --config tests/build/vite.config.ts && vite preview --config tests/build/vite.config.ts",
