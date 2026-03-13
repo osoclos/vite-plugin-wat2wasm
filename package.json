@@ -28,24 +28,27 @@
     },
 
     "scripts": {
-        "dev": "tsdown --watch && bun run scripts/post-build.ts",
+        "dev": "concurrently 'tsdown --watch' 'vitest watch'",
+
+        "build": "tsdown",
         "test": "vitest",
 
-        "build": "tsdown && bun run scripts/post-build.ts",
-        "prepublishOnly": "bun run build",
-
-        "check-types": "tsc --noEmit"
+        "bump": "tsdown && bumpp"
     },
 
     "dependencies": { "wabt": "^1.0.39" },
     "devDependencies": {
-        "@types/node": "^25.0.3",
-        "@vitest/browser-preview": "^4.0.17",
-        "bumpp": "^10.3.2",
-        "rolldown": "^1.0.0-beta.60",
         "tsdown": "^0.18.3",
+        "rolldown": "^1.0.0-beta.60",
+
+        "vitest": "^4.0.18",
+        "@vitest/browser-preview": "^4.0.18",
+
         "typescript": "~5.9.3",
-        "vite": "^7.3.1",
-        "vitest": "^4.0.16"
+
+        "@types/node": "^25.3.2",
+
+        "bumpp": "^10.4.1",
+        "concurrently": "^9.2.1"
     }
 }
