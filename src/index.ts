@@ -93,8 +93,10 @@ const watCompilerPlugin = (options: Wat2WasmOptions = {}): Plugin => {
 
             const hash = hasher.digest("base64url").slice(0, 8);
 
-            const watName   = path.basename(watRelPath, ".wat") + "-" + hash;
-            const watParent = path.dirname(watRelPath);
+            const distRelPath = path.posix.relative(ctx.environment?.config?.root ?? __dirname, watAbsPath);
+
+            const watName   = path.basename(distRelPath, ".wat") + "-" + hash;
+            const watParent = path.dirname(distRelPath);
 
             const wasmFilePath = path.posix.join(watParent, watName + ".wasm");
             if (!importedWatFiles.has(wasmFilePath)) importedWatFiles.set(wasmFilePath, bfr);
@@ -169,13 +171,14 @@ const watCompilerPlugin = (options: Wat2WasmOptions = {}): Plugin => {
         },
 
         buildEnd() {
-            for (const [distPath, bfr] of importedWatFiles)
+            for (const [distPath, bfr] of importedWatFiles) {
                 this.emitFile({
                     type: "asset",
 
                     fileName: distPath,
                     source: bfr
                 });
+            }
         }
     };
 };
