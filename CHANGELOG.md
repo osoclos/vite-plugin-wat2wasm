@@ -2,6 +2,12 @@
 
 This file details the changes that happen in `vite-plugin-wat2wasm`.
 
+## v1.2.6 (13/03/26 - 10:15pm|UTC+8)
+
+- Fixes
+
+- - Re-added `module-types` types file.
+
 ## v1.2.5 (13/03/26 - 10:09pm|UTC+8)
 
 - Fixes
