@@ -134,7 +134,8 @@ const watCompilerPlugin = (options: Wat2WasmOptions = {}): Plugin => {
                 `const str = atob("${str}");` + "\n" +
                 "" + "\n" +
                 "const init = async (imports = {}) => {" + "\n" +
-                "    return WebAssembly.instantiate(new Uint8Array(str.length).fill(0x00).map((_, i) => str.charCodeAt(i)).buffer, imports).then(({ instance: { exports } }) => exports).catch(({ message }) => {" + "\n" +
+                "    return WebAssembly.instantiate(new Uint8Array(str.length).fill(0x00).map((_, i) => str.charCodeAt(i)).buffer, imports).then(({ instance: { exports } }) => exports).catch((err) => {" + "\n" +
+                "        const { message } = err;" + "\n" +
                 "        if (message === undefined || typeof message !== \"string\") {" + "\n" +
                 "            console.error(err[Symbol.toStringTag]() === \"WebAssembly.Exception\" ? \"Exception tag from WebAssembly file has been thrown while instantiating.\" : \"Unknown error while instantiating WebAssembly file.\");" + "\n" +
                 "            return;" + "\n" +
