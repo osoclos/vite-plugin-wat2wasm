@@ -83,7 +83,7 @@ const watCompilerPlugin = (options: Wat2WasmOptions = {}): Plugin => {
 
             const watRelPath = match[3];
 
-            const watAbsPath = (await ctx.resolve(watRelPath, codePath))?.id ?? null;
+            const watAbsPath = (await ctx.resolve(watRelPath, codePath))?.id.replaceAll("\\", "/") ?? null;
             if (watAbsPath === null) return code;
 
             const bfr = compileWat(watAbsPath);
@@ -93,7 +93,10 @@ const watCompilerPlugin = (options: Wat2WasmOptions = {}): Plugin => {
 
             const hash = hasher.digest("base64url").slice(0, 8);
 
-            const distRelPath = path.posix.relative(ctx.environment?.config?.root ?? __dirname, watAbsPath);
+            const rootPath = "environment" in ctx ? ctx.environment.config.root : process.cwd(); // some contexts do not provide an environment, so compute it separately.
+
+            let distRelPath = path.posix.relative(rootPath, watAbsPath);
+            if (distRelPath.startsWith(".")) distRelPath = path.win32.relative(rootPath, watAbsPath).replaceAll("\\", "/"); // if posix relative function resolves the paths incorrectly, use the windows function instead.
 
             const watName   = path.basename(distRelPath, ".wat") + "-" + hash;
             const watParent = path.dirname(distRelPath);

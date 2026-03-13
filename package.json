@@ -42,8 +42,8 @@
 
     "dependencies": { "wabt": "^1.0.39" },
     "devDependencies": {
-        "tsdown": "^0.18.3",
-        "rolldown": "^1.0.0-beta.60",
+        "tsdown": "^0.18.4",
+        "rolldown": "^1.0.0-rc.9",
 
         "vite": "^8.0.0",
         "vitest": "^4.0.18",
