@@ -28,10 +28,13 @@
     },
 
     "scripts": {
-        "dev": "concurrently 'tsdown --watch' 'vitest watch'",
+        "dev-dev"  : "concurrently 'tsdown --watch' 'vitest watch'",
+        "dev-build": "vite build --config tests/build/vite.config.ts && concurrently 'tsdown --watch' 'vite preview --config tests/build/vite.config.ts'",
 
         "build": "tsdown",
-        "test": "vitest",
+
+        "test-dev"  : "vitest",
+        "test-build": "vite build --config tests/build/vite.config.ts && vite preview --config tests/build/vite.config.ts",
 
         "bump": "tsdown && bumpp"
     },
@@ -41,6 +44,7 @@
         "tsdown": "^0.18.3",
         "rolldown": "^1.0.0-beta.60",
 
+        "vite": "^8.0.0",
         "vitest": "^4.0.18",
         "@vitest/browser-preview": "^4.0.18",
 
