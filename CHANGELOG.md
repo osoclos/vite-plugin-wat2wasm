@@ -2,6 +2,12 @@
 
 This file details the changes that happen in `vite-plugin-wat2wasm`.
 
+## v1.2.7 (15/03/26 - 11:58pm|UTC+8)
+
+- Additions
+
+- - Added an option to redirect generated `.wasm` files when `emitWasm` is enabled.
+
 ## v1.2.6 (13/03/26 - 10:15pm|UTC+8)
 
 - Fixes
