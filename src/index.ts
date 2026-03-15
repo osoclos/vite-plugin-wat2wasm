@@ -41,6 +41,9 @@ interface Wat2WasmOptions {
 
     /** Configures how `vite-plugin-wat2wasm` to generate `.wasm` files. @default {} @see {@link WasmGeneratorOptions|`WasmGeneratorOptions`} */
     generator?: WasmGeneratorOptions;
+
+    /** Where, relative from the root directory specified in the Vite config, should it generate the emitted `.wasm` files in the output directory. @default "." */
+    relDir?: string;
 }
 
 /** Enables compilation of `.wat` files and generation of `.wasm`, with modifiable settings.
@@ -53,7 +56,9 @@ const watCompilerPlugin = (options: Wat2WasmOptions = {}): Plugin => {
         target: optionsTarget = "all",
 
         parser: parserOptions = {},
-        generator: generatorOptions = {}
+        generator: generatorOptions = {},
+
+        relDir = "."
     } = options;
 
     const targets =
@@ -95,8 +100,8 @@ const watCompilerPlugin = (options: Wat2WasmOptions = {}): Plugin => {
 
             const rootPath = "environment" in ctx ? ctx.environment.config.root : process.cwd(); // some contexts do not provide an environment, so compute it separately.
 
-            let distRelPath = path.posix.relative(rootPath, watAbsPath);
-            if (distRelPath.startsWith(".")) distRelPath = path.win32.relative(rootPath, watAbsPath).replaceAll("\\", "/"); // if posix relative function resolves the paths incorrectly, use the windows function instead.
+            let distRelPath = path.posix.relative(path.join(rootPath, relDir), watAbsPath);
+            if (distRelPath.startsWith(".")) distRelPath = path.win32.relative(path.join(rootPath, relDir), watAbsPath).replaceAll("\\", "/"); // if posix relative function resolves the paths incorrectly, use the windows function instead.
 
             const watName   = path.basename(distRelPath, ".wat") + "-" + hash;
             const watParent = path.dirname(distRelPath);

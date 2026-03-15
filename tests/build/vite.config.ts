@@ -5,6 +5,8 @@ export default defineConfig({
     root: __dirname,
     plugins: [watCompilerPlugin({
         emitWasm: true,
-        target: "browser"
+        target: "browser",
+
+        relDir: "src"
     })]
 });

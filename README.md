@@ -110,6 +110,8 @@ Configures `.wasm` features you wish to enable for `vite-plugin-wat2wasm`.
 
 - `generator?:` [`WasmGeneratorOptions`](#wasmgeneratoroptions) `= {}` - Configures how `vite-plugin-wat2wasm` to generate `.wasm` files.
 
+- `relDir?: string = "."` - Where, relative from the root directory specified in the Vite config, should it generate the emitted `.wasm` files in the output directory.
+
 ### `WasmTarget`
 
 The available targets that is supported by `vite-plugin-wat2wasm`.
