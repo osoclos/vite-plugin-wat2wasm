@@ -1,7 +1,7 @@
 {
     "name": "vite-plugin-wat2wasm",
     "type": "module",
-    "version": "1.2.6",
+    "version": "1.2.7",
     "description": "Enable .wat compilation and integrate generated WebAssembly modules into your codebase with type support",
 
     "author": "osoclos",
