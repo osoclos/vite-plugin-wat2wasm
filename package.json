@@ -45,8 +45,8 @@
 
         "dev-library": "concurrently 'bun run build-watch' 'tsdown --watch --config tests/library/tsdown.config.ts' 'vite --config tests/library/tests/vite.config.ts'",
 
-        "build": "tsdown && robocopy src dist types.d.ts > NUL",
-        "build-watch": "tsdown --watch --on-success 'robocopy src dist types.d.ts > NUL'",
+        "build": "tsdown && bun run scripts/post-build.ts",
+        "build-watch": "tsdown --watch --on-success 'bun run scripts/post-build.ts'",
 
         "bump": "bun run build && bumpp"
     },
