@@ -1,0 +1,68 @@
+{
+    "name": "vite-plugin-wat2wasm",
+    "version": "2.0.0",
+    "description": "Enable .wat (WebAssembly Text Format) compilation and integrate WebAssembly modules easily into your codebase/library",
+
+    "homepage": "https://github.com/osoclos/vite-plugin-wat2wasm",
+
+    "license": "MIT",
+    "author": {
+        "name": "osoclos",
+        "email": "osoclosus@gmail.com",
+
+        "url": "https://github.com/osoclos"
+    },
+
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/osoclos/vite-plugin-wat2wasm.git"
+    },
+
+    "bugs": {
+        "email": "osoclosus@gmail.com",
+        "url": "https://github.com/osoclos/vite-plugin-wat2wasm/issues"
+    },
+
+    "private": false,
+
+    "type": "module",
+
+    "main": "./dist/index.js",
+    "module": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+
+    "files": ["dist"],
+    "exports": {
+        ".": "./dist/index.js",
+        "./types": "./dist/types.d.ts",
+
+        "./package.json": "./package.json"
+    },
+
+    "scripts": {
+        "dev-codebase-dev": "concurrently 'bun run build-watch' 'vite --config tests/codebase/vite.config.ts'",
+        "dev-codebase-build": "concurrently 'bun run build-watch' 'vite build --watch --config tests/codebase/vite.config.ts' 'vite preview --config tests/codebase/vite.config.ts'",
+
+        "dev-library": "concurrently 'bun run build-watch' 'tsdown --watch --config tests/library/tsdown.config.ts' 'vite --config tests/library/tests/vite.config.ts'",
+
+        "build": "tsdown && robocopy src dist types.d.ts > NUL",
+        "build-watch": "tsdown --watch --on-success 'robocopy src dist types.d.ts > NUL'",
+
+        "bump": "bun run build && bumpp"
+    },
+
+    "dependencies": { "wabt": "^1.0.39" },
+    "devDependencies": {
+        "tsdown": "^0.21.3",
+        "rolldown": "^1.0.0-rc.9",
+
+        "vite": "^8.0.0",
+
+        "typescript": "~5.9.3",
+
+        "@types/node": "^25.5.0",
+
+        "bumpp": "^10.4.1",
+        "concurrently": "^9.2.1"
+    }
+}
