@@ -1,4 +1,5 @@
 import { defineConfig } from "tsdown";
+import wat2WasmPlugin from "../../src/index.ts";
 
 export default defineConfig({
     entry: "src/index.ts",
@@ -22,5 +23,5 @@ export default defineConfig({
 
     unbundle: true,
 
-    inputOptions: { external: ["../../src"] }
+    plugins: [wat2WasmPlugin()]
 });

@@ -1,3 +1,4 @@
-import { sub } from "../../src";
+import { createSubFunc } from "../../dist";
 
-console.log(sub(2, 3));
+const sub = await createSubFunc();
+console.log(sub(5, 3));

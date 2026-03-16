@@ -1,5 +1,6 @@
-import { add } from "../../../src";
+import initSub from "./sub.wat";
 
-export function sub(a: number, b: number): number {
-    return add(a, -b);
+export async function createSubFunc(): Promise<(a: number, b: number) => number> {
+    const subModule = await initSub<{ sub(a: number, b: number): number; }>();
+    return subModule.sub;
 }

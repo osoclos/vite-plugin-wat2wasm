@@ -1,3 +1,4 @@
-import { add } from "../../../src";
+import initAdd from "./add.wat";
 
-console.log(add(2, 3));
+const addModule = await initAdd<{ add(a: number, b: number): number; }>();
+console.log(addModule.add(2, 3));

@@ -5,6 +5,9 @@
     "exclude": ["dist"],
 
     "compilerOptions": {
+        // Modules
+        "types": ["../../src/types.d.ts"],
+
         // Emit
         "declaration": true,
         "emitDeclarationOnly": true,
