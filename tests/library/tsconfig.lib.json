@@ -1,0 +1,21 @@
+{
+    "extends": "../../tsconfig.json",
+
+    "include": ["src"],
+    "exclude": ["dist"],
+
+    "compilerOptions": {
+        // Modules
+        "types": ["../../src/types.d.ts"],
+
+        // Emit
+        "declaration": true,
+        "emitDeclarationOnly": true,
+        "noEmit": false,
+        "outDir": "dist",
+
+        // Language and Environment
+        "lib": ["ES2023", "DOM"],
+        "target": "ES2023"
+    }
+}

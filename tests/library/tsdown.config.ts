@@ -1,4 +1,5 @@
 import { defineConfig } from "tsdown";
+import wat2WasmPlugin from "../../src/index.ts";
 
 export default defineConfig({
     entry: "src/index.ts",
@@ -20,5 +21,7 @@ export default defineConfig({
     clean: true,
     minify: true,
 
-    unbundle: true
+    unbundle: true,
+
+    plugins: [wat2WasmPlugin()]
 });

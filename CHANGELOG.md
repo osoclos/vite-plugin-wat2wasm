@@ -2,6 +2,18 @@
 
 This file details the changes that happen in `vite-plugin-wat2wasm`.
 
+## v2.0.0 (16/03/26 - 5:07pm|UTC+8)
+
+- Additions
+
+- - Improved the compilation of `.wat` files, with an option to display logs.
+
+- - Enabled inlining of `.wasm` buffers within instantiating functions and generation of `.js` files for initialising the WebAssembly modules.
+
+- Removals
+
+- - Removed the options (`emitWasm`, `target`, `relDir`) responsible for emitting `.wasm` files due to technical complications and little demand.
+
 ## v1.2.7 (15/03/26 - 11:58pm|UTC+8)
 
 - Additions

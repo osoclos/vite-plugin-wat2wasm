@@ -1,19 +1,31 @@
 {
     "name": "vite-plugin-wat2wasm",
-    "type": "module",
-    "version": "1.2.7",
-    "description": "Enable .wat compilation and integrate generated WebAssembly modules into your codebase with type support",
+    "version": "2.0.0",
+    "description": "A simple Vite plugin that enables `.wat` (WebAssembly Text Format) compilation and allows usage of WebAssembly within your codebase/library",
 
-    "author": "osoclos",
+    "homepage": "https://github.com/osoclos/vite-plugin-wat2wasm",
+
     "license": "MIT",
+    "author": {
+        "name": "osoclos",
+        "email": "osoclosus@gmail.com",
 
-    "homepage": "https://github.com/osoclos/vite-plugin-wat2wasm#readme",
+        "url": "https://github.com/osoclos"
+    },
+
     "repository": {
         "type": "git",
         "url": "git+https://github.com/osoclos/vite-plugin-wat2wasm.git"
     },
 
-    "bugs": { "url": "https://github.com/osoclos/vite-plugin-wat2wasm/issues" },
+    "bugs": {
+        "email": "osoclosus@gmail.com",
+        "url": "https://github.com/osoclos/vite-plugin-wat2wasm/issues"
+    },
+
+    "private": false,
+
+    "type": "module",
 
     "main": "./dist/index.js",
     "module": "./dist/index.js",
@@ -22,36 +34,31 @@
     "files": ["dist"],
     "exports": {
         ".": "./dist/index.js",
-        "./module-types": "./dist/modules.d.ts",
+        "./types": "./dist/types.d.ts",
 
         "./package.json": "./package.json"
     },
 
     "scripts": {
-        "dev-dev"  : "concurrently 'bun run build' 'vitest watch'",
-        "dev-build": "concurrently 'bun run build' 'vite build --watch --config tests/build/vite.config.ts' 'vite preview --config tests/build/vite.config.ts'",
+        "dev-codebase-dev": "concurrently 'bun run build-watch' 'vite --config tests/codebase/vite.config.ts'",
+        "dev-codebase-build": "concurrently 'bun run build-watch' 'vite build --watch --config tests/codebase/vite.config.ts' 'vite preview --config tests/codebase/vite.config.ts'",
+
+        "dev-library": "concurrently 'bun run build-watch' 'tsdown --watch --config tests/library/tsdown.config.ts' 'vite --config tests/library/tests/vite.config.ts'",
 
         "build": "tsdown && bun run scripts/post-build.ts",
         "build-watch": "tsdown --watch --on-success 'bun run scripts/post-build.ts'",
 
-        "test-dev"  : "vitest",
-        "test-build": "vite build --watch --config tests/build/vite.config.ts && vite preview --config tests/build/vite.config.ts",
-
-        "bump": "tsdown && bun run scripts/post-build.ts && bumpp"
+        "bump": "bun run build && bumpp"
     },
 
     "dependencies": { "wabt": "^1.0.39" },
     "devDependencies": {
         "tsdown": "^0.18.4",
-        "rolldown": "^1.0.0-rc.9",
-
         "vite": "^8.0.0",
-        "vitest": "^4.0.18",
-        "@vitest/browser-preview": "^4.0.18",
 
         "typescript": "~5.9.3",
 
-        "@types/node": "^25.3.2",
+        "@types/node": "^25.5.0",
 
         "bumpp": "^10.4.1",
         "concurrently": "^9.2.1"

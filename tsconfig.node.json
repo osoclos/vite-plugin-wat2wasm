@@ -1,17 +1,13 @@
 {
-    "extends": ["./tsconfig.json"],
-    "include": ["tsdown.config.ts", "vitest.config.ts", "tests/build/vite.config.ts"],
+    "extends": "./tsconfig.json",
+    "include": ["tsdown.config.ts", "tests/codebase/vite.config.ts", "tests/library/tsdown.config.ts", "tests/library/tests/vite.config.ts"],
 
     "compilerOptions": {
         // Modules
-        "allowImportingTsExtensions": true,
         "types": ["@types/node"],
-
-        // Emit
-        "noEmit": true,
 
         // Language and Environment
         "lib": ["ESNext"],
-        "target": "ESNext",
+        "target": "ESNext"
     }
 }

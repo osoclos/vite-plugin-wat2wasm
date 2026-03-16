@@ -1,6 +1,6 @@
 # vite-plugin-wat2wasm
 
-Enable `.wat` compilation and integrate generated WebAssembly modules into your codebase with type support
+A simple Vite plugin that enables `.wat` (WebAssembly Text Format) compilation and allows usage of WebAssembly within your codebase/library.
 
 ## Installation
 
@@ -14,11 +14,11 @@ $ <your-preferred-package-manager> install -D vite-plugin-wat2wasm
 
 ``` ts
 import { defineConfig } from "vite";
-import watVitePlugin from "vite-plugin-wat2wasm";
+import wat2WasmPlugin from "vite-plugin-wat2wasm";
 
 export default defineConfig({
     plugins: [
-        watVitePlugins({ /* Refer to the API docs below for options */ }),
+        wat2WasmPlugin({ /* Refer to the API docs below for options */ }),
         /* ...other plugins */
     ],
 
@@ -31,7 +31,7 @@ export default defineConfig({
 Reference it as a comment...
 
 ``` ts
-/// <reference types="vite-plugin-wat2wasm/module-types" />
+/// <reference types="vite-plugin-wat2wasm/types" />
 ```
 
 or include it in your `tsconfig.json` file
@@ -40,7 +40,7 @@ or include it in your `tsconfig.json` file
 {
     "include": ["src"],
     "compilerOptions": {
-        "types": ["vite-plugin-wat2wasm/module-types", /* ... other type files/packages */]
+        "types": ["vite-plugin-wat2wasm/types", /* ... other type files/packages */]
         // ... other options for Typescript
     }
 }
@@ -81,11 +81,11 @@ interface FooImports {
 
 This section contains more in-depth details about the `vite-plugin-wat2wasm` library and how to make use of what `vite-plugin-wat2wasm` offers.
 
-### `watVitePlugin`
+### `wat2WasmPlugin`
 
 Enables compilation of `.wat` files and generation of `.wasm`, with modifiable settings.
 
-`watVitePlugin(options:` [`Wat2WasmOptions`](#wat2wasmoptions)`):`[`Plugin`](<https://vite.dev/guide/api-plugin>)
+`wat2WasmPlugin(options:` [`Wat2WasmOptions`](#wat2wasmoptions)`):`[`Plugin`](<https://vite.dev/guide/api-plugin>)
 
 #### Parameters
 
@@ -101,26 +101,10 @@ The configuration settings for `vite-plugin-wat2wasm`.
 
 #### Properties
 
-- `emitWasm?: boolean = true` - Determines whether `.wasm` files will be outputted after compiling `.wat` files during build. Useful if you want other bundlers/compilers to take over generation of `.wasm` files.
-
-- `target?: "all" |` [`WasmTarget`](#wasmtarget) `| WasmTarget[] = "all"` - Selects the targets that can use the `.wat` modules. `"all"` means that all targets available in [`WasmTarget`](#wasmtarget) are targeted and can use said modules.
-
 - `parser?:` [`WasmParserOptions`](#wasmparseroptions) `= {}` -
 Configures `.wasm` features you wish to enable for `vite-plugin-wat2wasm`.
 
 - `generator?:` [`WasmGeneratorOptions`](#wasmgeneratoroptions) `= {}` - Configures how `vite-plugin-wat2wasm` to generate `.wasm` files.
-
-- `relDir?: string = "."` - Where, relative from the root directory specified in the Vite config, should it generate the emitted `.wasm` files in the output directory.
-
-### `WasmTarget`
-
-The available targets that is supported by `vite-plugin-wat2wasm`.
-
-#### Values
-
-`"browser"` - Browsers and runtimes that include DOM libraries can use the bundled `.wat` modules.
-
-`"node"` - Node.js and runtimes that include the node library can use the bundled `.wat` modules.
 
 ### `WasmParserOptions`
 
