@@ -20,6 +20,11 @@ interface Wat2WasmOptions {
     generator?: WasmGeneratorOptions;
 }
 
+/** Enables compilation of `.wat` files and generation of `.wasm`, with modifiable settings.
+ *
+ * @param options - the configuration options for `vite-plugin-wat2wasm`. @see {@link Wat2WasmOptions|`Wat2WasmOptions`}
+ * @returns a Vite plugin object that allows for compilation of `.wat` files. @see {@link https://vite.dev/guide/api-plugin|`Plugin`}
+ */
 const wat2WasmPlugin = (options: Wat2WasmOptions = {}): Plugin => {
     const {
         parser: parserOptions = {},
@@ -45,3 +50,4 @@ const wat2WasmPlugin = (options: Wat2WasmOptions = {}): Plugin => {
 };
 
 export default wat2WasmPlugin;
+export type { Wat2WasmOptions, WasmParserOptions, WasmGeneratorOptions };

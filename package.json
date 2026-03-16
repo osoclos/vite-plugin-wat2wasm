@@ -1,7 +1,7 @@
 {
     "name": "vite-plugin-wat2wasm",
     "version": "2.0.0",
-    "description": "Enable .wat (WebAssembly Text Format) compilation and integrate WebAssembly modules easily into your codebase/library",
+    "description": "A simple Vite plugin that enables `.wat` (WebAssembly Text Format) compilation and allows usage of WebAssembly within your codebase/library",
 
     "homepage": "https://github.com/osoclos/vite-plugin-wat2wasm",
 
