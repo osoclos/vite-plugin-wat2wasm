@@ -1,4 +1,4 @@
-import { Plugin, ResolvedConfig } from "vite";
+import type { Plugin } from "vite";
 import initWabt from "wabt";
 
 const wabt = await initWabt();
@@ -20,8 +20,11 @@ interface Wat2WasmOptions {
     generator?: WasmGeneratorOptions;
 }
 
-const wat2WasmPlugin = (): Plugin => {
-    let config: ResolvedConfig;
+const wat2WasmPlugin = (options: Wat2WasmOptions = {}): Plugin => {
+    const {
+        parser: parserOptions = {},
+        generator: generatorOptions = {},
+    } = options;
 
     return {
         name: "wat2wasm",
@@ -29,10 +32,15 @@ const wat2WasmPlugin = (): Plugin => {
         transform(code: string, id: string) {
             if (!id.endsWith(".wat")) return null;
 
+            const module = wabt.parseWat(id, code, parserOptions);
 
-        },
+            const wasmWrapper = module.toBinary(generatorOptions);
+            if (generatorOptions.log) console.log(id + "\n", wasmWrapper.log);
 
-        configResolved: (resolvedConfig: ResolvedConfig) => void (config = resolvedConfig)
+            const bfr = wasmWrapper.buffer;
+
+            return `export default async (imports = {}) => WebAssembly.instantiate(Uint8Array.from(atob("${btoa(String.fromCharCode(...bfr))}"), (char) => char.charCodeAt(0)), imports).then(({ instance: { exports } }) => exports);`;
+        }
     };
 };
 
