@@ -40,7 +40,7 @@ const wat2WasmPlugin = (options: Wat2WasmOptions = {}): Plugin => {
             const module = wabt.parseWat(id, code, parserOptions);
 
             const wasmWrapper = module.toBinary(generatorOptions);
-            if (generatorOptions.log) console.log(id + "\n", wasmWrapper.log);
+            if (generatorOptions.log) console.log(id + "\n" + "\n", wasmWrapper.log);
 
             const bfr = wasmWrapper.buffer;
 
