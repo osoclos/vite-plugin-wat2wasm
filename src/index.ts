@@ -1,3 +1,5 @@
+import path from "path";
+
 import type { Plugin } from "vite";
 import initWabt from "wabt";
 
@@ -31,16 +33,25 @@ const wat2WasmPlugin = (options: Wat2WasmOptions = {}): Plugin => {
         generator: generatorOptions = {},
     } = options;
 
+    let root: string;
+
     return {
         name: "wat2wasm",
 
-        transform(code: string, id: string) {
-            if (!id.endsWith(".wat")) return null;
+        configResolved(config) {
+            root = config.root;
+        },
 
-            const module = wabt.parseWat(id, code, parserOptions);
+        transform(code: string, pathId: string) {
+            if (!pathId.endsWith(".wat")) return null;
+
+            const pathRel = path.relative(root, pathId).replaceAll("\\", "/");
+            const filename = path.basename(pathId);
+
+            const module = wabt.parseWat(filename, code, parserOptions);
 
             const wasmWrapper = module.toBinary(generatorOptions);
-            if (generatorOptions.log) console.log(id + "\n" + "\n", wasmWrapper.log);
+            if (generatorOptions.log) console.log("\x1b[1;35m[plugin-wat2wasm]\x1b[0;39m \x1b[36mLog Output\x1b[39m - \x1b[92m" + pathRel + "\n" + "\x1b[39m" + wasmWrapper.log);
 
             const bfr = wasmWrapper.buffer;
 
