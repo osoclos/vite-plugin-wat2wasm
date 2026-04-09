@@ -49,7 +49,7 @@ or include it in your `tsconfig.json` file
 ### Using it in your application/library
 
 ``` ts
-import initFoo from "./foo.wat"
+import initFoo from "./foo.wat";
 
 const bar = new WebAssembly.Global("i32", { value: 13 });
 const foo = await initFoo<FooExports, FooImports>({
@@ -83,7 +83,7 @@ This section contains more in-depth details about the `vite-plugin-wat2wasm` lib
 
 ### `wat2WasmPlugin`
 
-Enables compilation of `.wat` files and generation of `.wasm`, with modifiable settings.
+Enables compilation of `.wat` files and generation of WebAssembly, with modifiable settings.
 
 `wat2WasmPlugin(options:` [`Wat2WasmOptions`](#wat2wasmoptions)`):`[`Plugin`](<https://vite.dev/guide/api-plugin>)
 
@@ -102,9 +102,9 @@ The configuration settings for `vite-plugin-wat2wasm`.
 #### Properties
 
 - `parser?:` [`WasmParserOptions`](#wasmparseroptions) `= {}` -
-Configures `.wasm` features you wish to enable for `vite-plugin-wat2wasm`.
+Configures WebAssembly features you wish to enable for `vite-plugin-wat2wasm`.
 
-- `generator?:` [`WasmGeneratorOptions`](#wasmgeneratoroptions) `= {}` - Configures how `vite-plugin-wat2wasm` to generate `.wasm` files.
+- `generator?:` [`WasmGeneratorOptions`](#wasmgeneratoroptions) `= {}` - Configures how `vite-plugin-wat2wasm` to generate WebAssembly output.
 
 ### `WasmParserOptions`
 

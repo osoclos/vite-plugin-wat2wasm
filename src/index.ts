@@ -13,14 +13,14 @@ type WasmGeneratorOptions = Parameters<ReturnType<WabtParserFunc>["toBinary"]>[0
 
 /** The configuration settings for `vite-plugin-wat2wasm`. @see Wat2WasmOptions */
 interface Wat2WasmOptions {
-    /** Configures `.wasm` features you wish to enable for `vite-plugin-wat2wasm`. @default {} @see {@link WasmParserOptions|`WasmParserOptions`} */
+    /** Configures WebAssembly features you wish to enable for `vite-plugin-wat2wasm`. @default {} @see {@link WasmParserOptions|`WasmParserOptions`} */
     parser?: WasmParserOptions;
 
-    /** Configures how `vite-plugin-wat2wasm` to generate `.wasm` files. @default {} @see {@link WasmGeneratorOptions|`WasmGeneratorOptions`} */
+    /** Configures how `vite-plugin-wat2wasm` to generate WebAssembly output. @default {} @see {@link WasmGeneratorOptions|`WasmGeneratorOptions`} */
     generator?: WasmGeneratorOptions;
 }
 
-/** Enables compilation of `.wat` files and generation of `.wasm`, with modifiable settings.
+/** Enables compilation of `.wat` files and generation of WebAssembly, with modifiable settings.
  *
  * @param options - the configuration options for `vite-plugin-wat2wasm`. @see {@link Wat2WasmOptions|`Wat2WasmOptions`}
  * @returns a Vite plugin object that allows for compilation of `.wat` files. @see {@link https://vite.dev/guide/api-plugin|`Plugin`}
