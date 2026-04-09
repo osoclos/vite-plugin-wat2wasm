@@ -2,6 +2,18 @@
 
 This file details the changes that happen in `vite-plugin-wat2wasm`.
 
+## v2.1.0 (10/04/26 - 1:37am|UTC+8)
+
+- Additions
+
+- - Added the ability to inline or separate Webassembly output using `options.inlineAssemblies`.
+
+- Changes
+
+- - Generating separate `.wasm` files is now the default; inlining them now requires the `inlineAssemblies` in the options object to be explicitly set to true.
+
+- - Improved debug logging of `.wat` file compilation, with a neater format for indicating the start and end of logs.
+
 ## v2.0.0 (16/03/26 - 5:07pm|UTC+8)
 
 - Additions
