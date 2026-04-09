@@ -15,6 +15,9 @@ type WasmGeneratorOptions = Parameters<ReturnType<WabtParserFunc>["toBinary"]>[0
 
 /** The configuration settings for `vite-plugin-wat2wasm`. @see Wat2WasmOptions */
 interface Wat2WasmOptions {
+    /** Whether to inline generated WebAssembly output within JavaScript files when transforming `.wat` files. */
+    inlineAssemblies?: boolean;
+
     /** Configures WebAssembly features you wish to enable for `vite-plugin-wat2wasm`. @default {} @see {@link WasmParserOptions|`WasmParserOptions`} */
     parser?: WasmParserOptions;
 
@@ -29,33 +32,93 @@ interface Wat2WasmOptions {
  */
 const wat2WasmPlugin = (options: Wat2WasmOptions = {}): Plugin => {
     const {
+        inlineAssemblies = false,
+
         parser: parserOptions = {},
         generator: generatorOptions = {},
     } = options;
 
     let root: string;
+    let isServing: boolean;
+
+    const filesToEmit: Record<string, Uint8Array> = {};
+
+    const transformWasm = (bfr: Uint8Array, filename: string) => inlineAssemblies || isServing
+        ?
+        `
+        export default async (imports = {}) => {
+            const data = atob("${btoa(String.fromCharCode(...bfr))}");
+
+            const len = data.length;
+
+            const bfr = new Uint8Array(len);
+            for (let i = 0; i < len; i++) bfr[i] = data.charCodeAt(i);
+
+            return WebAssembly.instantiate(bfr).then((src) => src.instance.exports);
+        };
+        `
+        :
+        `
+        export default (imports = {}) => WebAssembly.instantiateStreaming(fetch(new URL("${filename}", import.meta.url))).then((src) => src.instance.exports);
+        `;
 
     return {
         name: "wat2wasm",
-
-        configResolved(config) {
-            root = config.root;
-        },
+        enforce: "pre",
 
         transform(code: string, pathId: string) {
             if (!pathId.endsWith(".wat")) return null;
 
-            const pathRel = path.relative(root, pathId).replaceAll("\\", "/");
-            const filename = path.basename(pathId);
+            pathId = pathId.replaceAll("\\", "/");
 
-            const module = wabt.parseWat(filename, code, parserOptions);
+            const pathRel = path.relative(root, pathId);
+            const basename = path.basename(pathId, ".wat");
 
-            const wasmWrapper = module.toBinary(generatorOptions);
-            if (generatorOptions.log) console.log("\x1b[1;35m[plugin-wat2wasm]\x1b[0;39m \x1b[36mLog Output\x1b[39m - \x1b[92m" + pathRel + "\n" + "\x1b[39m" + wasmWrapper.log);
+            const module = wabt.parseWat(basename + ".wat", code, parserOptions);
 
-            const bfr = wasmWrapper.buffer;
+            const output = module.toBinary(generatorOptions);
+            if (generatorOptions.log) console.log("\x1b[1;35m[plugin-wat2wasm]\x1b[0;39m \x1b[36mLog Output\x1b[39m - \x1b[92m" + pathRel + "\n" + "\x1b[39m" + output.log);
 
-            return `export default async (imports = {}) => WebAssembly.instantiate(Uint8Array.from(atob("${btoa(String.fromCharCode(...bfr))}"), (char) => char.charCodeAt(0)), imports).then(({ instance: { exports } }) => exports);`;
+            const bfr = output.buffer;
+
+            filesToEmit[pathId] = bfr;
+
+            return transformWasm(bfr, basename + ".wasm");
+        },
+
+        generateBundle(_options, bundles) {
+            if (inlineAssemblies) return;
+
+            for (let [pathBundle, bundle] of Object.entries(bundles)) {
+                if (bundle.type === "asset") continue;
+
+                pathBundle = pathBundle.replaceAll("\\", "/");
+
+                const pathParent = path.join(pathBundle, "../");
+
+                const modules = bundle.moduleIds;
+                for (let pathModule of modules) {
+                    pathModule = pathModule.replaceAll("\\", "/");
+                    if (!(pathModule in filesToEmit)) continue;
+
+                    const filename = path.basename(pathModule, ".wat") + ".wasm";
+                    const pathEmittedFile = path.join(pathParent, filename);
+
+                    const bfr = filesToEmit[pathModule]!;
+
+                    this.emitFile({
+                        type: "asset",
+
+                        source: bfr,
+                        fileName: pathEmittedFile
+                    });
+                }
+            }
+        },
+
+        configResolved(config) {
+            root = config.root.replaceAll("\\", "/");
+            isServing = config.command === "serve";
         }
     };
 };
