@@ -101,9 +101,9 @@ The configuration settings for `vite-plugin-wat2wasm`.
 
 #### Properties
 
-- `parser?:` [`WasmParserOptions`](#wasmparseroptions) `= {}` -
-Configures WebAssembly features you wish to enable for `vite-plugin-wat2wasm`.
+- `inlineAssemblies?:` `boolean` `= false` - Whether to inline generated WebAssembly output within JavaScript files when transforming `.wat` files.
 
+- `parser?:` [`WasmParserOptions`](#wasmparseroptions) `= {}` - Configures WebAssembly features you wish to enable for `vite-plugin-wat2wasm`.
 - `generator?:` [`WasmGeneratorOptions`](#wasmgeneratoroptions) `= {}` - Configures how `vite-plugin-wat2wasm` to generate WebAssembly output.
 
 ### `WasmParserOptions`
