@@ -1,4 +1,7 @@
+import fs from "fs/promises";
 import path from "path";
+
+import crypto from "crypto";
 
 import type { Plugin } from "vite";
 import initWabt from "wabt";
@@ -23,7 +26,15 @@ interface Wat2WasmOptions {
 
     /** Configures how `vite-plugin-wat2wasm` to generate WebAssembly output. @default {} @see {@link WasmGeneratorOptions|`WasmGeneratorOptions`} */
     generator?: WasmGeneratorOptions;
+
+    /** Determines the runtimes that can be targeted when the WebAssembly modules are fetched. Does not affect anything if `inlineAssemblies` is set to `true`. */
+    fetchTargets?: FetchTarget | FetchTarget[];
+
+    /** The directory path where utility functions used by JavaScript files to retrieve and interact with WebAssembly modules will be stored. */
+    utilDirPath?: string;
 }
+
+type FetchTarget = "browser" | "node";
 
 /** Enables compilation of `.wat` files and generation of WebAssembly, with modifiable settings.
  *
@@ -36,12 +47,34 @@ const wat2WasmPlugin = (options: Wat2WasmOptions = {}): Plugin => {
 
         parser: parserOptions = {},
         generator: generatorOptions = {},
+
+        fetchTargets = ["browser", "node"],
+        utilDirPath = "./__wasm-utils"
     } = options;
 
+    const PLUGIN_ID: string = "wat2wasm";
+    const FETCH_WASM_ID   = PLUGIN_ID + ":" + crypto.randomBytes(4).toString("hex");
+
+    const FETCH_WASM_PATH = path.join(utilDirPath, "fetchWasm.js");
+
     let root: string;
+    let rootDist: string;
+
     let isServing: boolean;
 
+    const targetsBrowser = fetchTargets.includes("browser");
+    const targetsNode    = fetchTargets.includes("node"   );
+
     const filesToEmit: Record<string, Uint8Array> = {};
+
+    let fetchWasmEmit: boolean = false;
+    const fetchWasmFunc: string =
+        `export async function fetchWasm(filename, parentPath, imports) {` + "\n" +
+        (targetsBrowser ? `    if (typeof window !== "undefined" && typeof document !== "undefined") return WebAssembly.instantiateStreaming(fetch(new URL(filename, parentPath)), imports);` : "") + "\n" +
+        (targetsNode    ? `    if (typeof process !== "undefined" && "versions" in process && "node" in process.versions) return WebAssembly.instantiate(await (await import("fs/promises").then(({ readFile }) => readFile))(filename), imports);` : "") + "\n" +
+                                                                                                                                                                                                                                                            "\n" +
+                          `    throw new Error("The runtime used to import this WebAssembly module is not supported. If this is a mistake, adjust your fetchTargets to fit the specific runtime.");` + "\n" +
+        `}` + "\n";
 
     const transformWasm = (bfr: Uint8Array, filename: string) => inlineAssemblies || isServing
         ?
@@ -59,7 +92,8 @@ const wat2WasmPlugin = (options: Wat2WasmOptions = {}): Plugin => {
         `
         :
         `
-        export default (imports = {}) => WebAssembly.instantiateStreaming(fetch(new URL("${filename}", import.meta.url))).then((src) => src.instance.exports);
+        import { fetchWasm } from "${FETCH_WASM_ID}";
+        export default (imports = {}) => fetchWasm("${filename}", import.meta.url, imports).then((src) => src.instance.exports);
         `;
 
     return {
@@ -113,15 +147,42 @@ const wat2WasmPlugin = (options: Wat2WasmOptions = {}): Plugin => {
                         fileName: pathEmittedFile
                     });
                 }
+
+                bundle.code = bundle.code.replaceAll(FETCH_WASM_ID, path.relative(pathParent, FETCH_WASM_PATH).replaceAll("\\", "/"));
+            }
+        },
+
+        buildStart() {
+            if ("data" in this) {
+                const data = this.data as any;
+
+                root = (data.outputOptions.preserveModules ? data.outputOptions.preserveModulesRoot : path.join(data.outputOptions.dir, "../")).replaceAll("\\", "/");
+                rootDist = data.outputOptions.dir.replaceAll("\\", "/");
+
+                isServing = false;
+            }
+
+            fetchWasmEmit = !(inlineAssemblies || isServing);
+        },
+
+        async closeBundle() {
+            if (fetchWasmEmit) {
+                const fetchWasmPath = path.join(rootDist, FETCH_WASM_PATH).replaceAll("\\", "/");
+                const fetchWasmParent = path.join(fetchWasmPath, "../").replaceAll("\\", "/");
+
+                await fs.mkdir(fetchWasmParent, { recursive: true });
+                await fs.writeFile(fetchWasmPath, fetchWasmFunc, "utf-8");
             }
         },
 
         configResolved(config) {
             root = config.root.replaceAll("\\", "/");
+            rootDist = path.join(root, config.build.outDir).replaceAll("\\", "/");
+
             isServing = config.command === "serve";
         }
     };
 };
 
 export default wat2WasmPlugin;
-export type { Wat2WasmOptions, WasmParserOptions, WasmGeneratorOptions };
+export type { Wat2WasmOptions, WasmParserOptions, WasmGeneratorOptions, FetchTarget };
