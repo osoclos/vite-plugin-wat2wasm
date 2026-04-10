@@ -94,7 +94,7 @@ const wat2WasmPlugin = (options: Wat2WasmOptions = {}): Plugin => {
         :
         `
         import { fetchWasm } from "${FETCH_WASM_ID}";
-        export default (imports = {}) => fetchWasm("${filename}", import.meta.url, imports).then((src) => src.instance.exports);
+        export default (imports = {}) => fetchWasm("${filename.startsWith(".") ? filename : "./" + filename}", import.meta.url, imports).then((src) => src.instance.exports);
         `;
 
     return {
@@ -149,7 +149,9 @@ const wat2WasmPlugin = (options: Wat2WasmOptions = {}): Plugin => {
                     });
                 }
 
-                bundle.code = bundle.code.replaceAll(FETCH_WASM_ID, path.relative(pathParent, FETCH_WASM_PATH).replaceAll("\\", "/"));
+                const fetchWasmPathRel = path.relative(pathParent, FETCH_WASM_PATH).replaceAll("\\", "/");
+
+                bundle.code = bundle.code.replaceAll(FETCH_WASM_ID, fetchWasmPathRel.startsWith(".") ? fetchWasmPathRel : "./" + fetchWasmPathRel);
             }
         },
 
