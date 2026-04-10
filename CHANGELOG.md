@@ -2,6 +2,12 @@
 
 This file details the changes that happen in `vite-plugin-wat2wasm`.
 
+## v2.1.2 (10/04/26 - 3:48pm|UTC+8)
+
+- Fixes
+
+- - Fixed path resolutions where it is treated as a package path instead of as a relative path in some situations.
+
 ## v2.1.1 (10/04/26 - 3:35pm|UTC+8)
 
 - Additions
