@@ -106,6 +106,10 @@ The configuration settings for `vite-plugin-wat2wasm`.
 - `parser?:` [`WasmParserOptions`](#wasmparseroptions) `= {}` - Configures WebAssembly features you wish to enable for `vite-plugin-wat2wasm`.
 - `generator?:` [`WasmGeneratorOptions`](#wasmgeneratoroptions) `= {}` - Configures how `vite-plugin-wat2wasm` to generate WebAssembly output.
 
+- `fetchTargets?:` [`FetchTarget`](#fetchtarget) `|` [`FetchTarget`](#fetchtarget)`[]` `= ["browser" | "node"]` - Determines the runtimes that can be targeted when the WebAssembly modules are fetched. Does not affect anything if `inlineAssemblies` is set to `true`.
+
+- `utilDirPath?:` `string` - The directory path where utility functions used by JavaScript files to retrieve and interact with WebAssembly modules will be stored.
+
 ### `WasmParserOptions`
 
 See [`wabt.WasmFeatures`](https://github.com/AssemblyScript/wabt.js/blob/main/README.md) for more info.
@@ -113,3 +117,12 @@ See [`wabt.WasmFeatures`](https://github.com/AssemblyScript/wabt.js/blob/main/RE
 ### `WasmGeneratorOptions`
 
 See [`wabt.ToBinaryOptions`](https://github.com/AssemblyScript/wabt.js/blob/main/README.md) for more info.
+
+### `FetchTarget`
+
+The runtimes supported as targets when fetching WebAssembly modules.
+
+#### List of Values
+
+- `"browser"` - Enable support for browser-based runtimes.
+- `"node"` - Enable support for Node-based runtimes.

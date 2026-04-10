@@ -34,6 +34,7 @@ interface Wat2WasmOptions {
     utilDirPath?: string;
 }
 
+/** The runtimes supported as targets when fetching WebAssembly modules. */
 type FetchTarget = "browser" | "node";
 
 /** Enables compilation of `.wat` files and generation of WebAssembly, with modifiable settings.
