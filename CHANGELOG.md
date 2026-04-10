@@ -2,6 +2,18 @@
 
 This file details the changes that happen in `vite-plugin-wat2wasm`.
 
+## v2.1.1 (10/04/26 - 3:35pm|UTC+8)
+
+- Additions
+
+- - Added the ability to load WebAssembly modules using Node.js' `fs.readFile` function for node-based runtimes.
+
+- - Allowed developers to target specific runtimes for fetching WebAssembly modules using `fetchTargets`.
+
+- Fixes
+
+- - Re-introduced usage of import objects in WebAssembly modules.
+
 ## v2.1.0 (10/04/26 - 1:37am|UTC+8)
 
 - Additions
