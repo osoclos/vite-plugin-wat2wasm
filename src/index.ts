@@ -27,12 +27,18 @@ interface Wat2WasmOptions {
     /** Configures how `vite-plugin-wat2wasm` to generate WebAssembly output. @default {} @see {@link WasmGeneratorOptions|`WasmGeneratorOptions`} */
     generator?: WasmGeneratorOptions;
 
+    /** Determine whether the `compileOptions` parameter will be used when instantiating WebAssembly modules and how will it be resolved if there is no support. */
+    enableCompileOptions?: EnableCompileOptionsValue;
+
     /** Determines the runtimes that can be targeted when the WebAssembly modules are fetched. Does not affect anything if `inlineAssemblies` is set to `true`. */
     fetchTargets?: FetchTarget | FetchTarget[];
 
     /** The directory path where utility functions used by JavaScript files to retrieve and interact with WebAssembly modules will be stored. */
     utilDirPath?: string;
 }
+
+/** The values supported by the `enableCompileOptions` setting in the plugin configuration object. */
+type EnableCompileOptionsValue = boolean | "auto" | "polyfill";
 
 /** The runtimes supported as targets when fetching WebAssembly modules. */
 type FetchTarget = "browser" | "node";
@@ -49,14 +55,19 @@ const wat2WasmPlugin = (options: Wat2WasmOptions = {}): Plugin => {
         parser: parserOptions = {},
         generator: generatorOptions = {},
 
+        enableCompileOptions = "auto",
+
         fetchTargets = ["browser", "node"],
         utilDirPath = "./__wasm-utils"
     } = options;
 
     const PLUGIN_ID: string = "wat2wasm";
+
     const FETCH_WASM_ID   = PLUGIN_ID + ":" + crypto.randomBytes(4).toString("hex");
+    const GENERATE_NEXT_ARGS_ID   = PLUGIN_ID + ":" + crypto.randomBytes(4).toString("hex");
 
     const FETCH_WASM_PATH = path.join(utilDirPath, "fetchWasm.js");
+    const GENERATE_NEXT_ARGS_PATH = path.join(utilDirPath, "generateNextArguments.js");
 
     let root: string;
     let rootDist: string;
@@ -69,18 +80,159 @@ const wat2WasmPlugin = (options: Wat2WasmOptions = {}): Plugin => {
     const filesToEmit: Record<string, Uint8Array> = {};
 
     let fetchWasmEmit: boolean = false;
-    const fetchWasmFunc: string =
-        `export async function fetchWasm(filename, parentPath, imports) {` + "\n" +
-        (targetsBrowser ? `    if (typeof window !== "undefined" && typeof document !== "undefined") return WebAssembly.instantiateStreaming(fetch(new URL(filename, parentPath)), imports);` : "") + "\n" +
-        (targetsNode    ? `    if (typeof process !== "undefined" && "versions" in process && "node" in process.versions) return WebAssembly.instantiate(await (await import("fs/promises").then(({ readFile }) => readFile))(filename), imports);` : "") + "\n" +
+
+    const fetchWasmFunc =
+        `import { generateNextArguments } from "${GENERATE_NEXT_ARGS_ID}";` + "\n" +
+        `` + "\n" +
+        `export async function fetchWasm(filename, parentPath, imports, compileOptions) {` + "\n" +
+        (targetsBrowser ? `    if (typeof window !== "undefined" && typeof document !== "undefined") return WebAssembly.instantiateStreaming(fetch(new URL(filename, parentPath)), ...await generateNextArguments(imports, compileOptions));` : "") + "\n" +
+        (targetsNode    ? `    if (typeof process !== "undefined" && "versions" in process && "node" in process.versions) return WebAssembly.instantiate(await (await import("fs/promises").then(({ readFile }) => readFile))(filename), ...await generateNextArguments(imports, compileOptions));` : "") + "\n" +
                                                                                                                                                                                                                                                             "\n" +
                           `    throw new Error("The runtime used to import this WebAssembly module is not supported. If this is a mistake, adjust your fetchTargets to fit the specific runtime.");` + "\n" +
+        `}` + "\n";
+
+    const generateNextArgumentsFunc =
+        `export async function generateNextArguments(imports, compileOptions) {`   + "\n" +
+        `    if (typeof compileOptions !== "object" || compileOptions === null) return [imports];` + "\n" +
+        (
+            typeof enableCompileOptions === "boolean"
+                ? enableCompileOptions
+                    ? `    return [imports, compileOptions];`
+                    : `    return [imports];`
+                :
+                    `` + "\n" +
+                    `    const supportsCompileOptions = await (async () => {` + "\n" +
+                    `        try {`                                                             + "\n" +
+                    `            await WebAssembly.compile(new Uint8Array([0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00]), { builtins: [], importedStringConstants: null });` + "\n" +
+                    `            return true;` + "\n" +
+                    `        } catch {` + "\n" +
+                    `            return false;` + "\n" +
+                    `        }` + "\n" +
+                    `    })();` + "\n" +
+                    `` + "\n" +
+                    `    if (supportsCompileOptions) return [imports, compileOptions];` + "\n" +
+                    `` + "\n" +
+                    (
+                        enableCompileOptions === "auto"
+                        ?
+                            `    console.warn("This runtime does not support compileOptions for WebAssembly instantiation. If this is a mistake, make sure that the enableCompileOptions setting has been set appropriately in your configuration.");`
+                        :
+                            `    if ("builtins" in compileOptions) {` + "\n" +
+                            `        const builtins = compileOptions.builtins;` + "\n" +
+                            `` + "\n" +
+                            `        if (builtins.includes("js-string")) {` + "\n" +
+                            `            const jsString = {` + "\n" +
+                            `                cast(obj) {` + "\n" +
+                            `                    if (obj === null || typeof obj !== "string") throw WebAssembly.RuntimeError("externref obj passed into wasm:js-string.cast is not castable as a string.");` + "\n" +
+                            `                    return obj;` + "\n" +
+                            `                },` + "\n" +
+                            `` + "\n" +
+                            `                compare($a, $b) {` + "\n" +
+                            `                    const a = this.cast($a);` + "\n" +
+                            `                    const b = this.cast($b);` + "\n" +
+                            `` + "\n" +
+                            `                    if (a === b) return 0;` + "\n" +
+                            `                    return a < b ? -1 : 1;` + "\n" +
+                            `                },` + "\n" +
+                            `` + "\n" +
+                            `                concat($a, $b) {` + "\n" +
+                            `                    const a = this.cast($a);` + "\n" +
+                            `                    const b = this.cast($b);` + "\n" +
+                            `` + "\n" +
+                            `                    return a.concat(b);` + "\n" +
+                            `                },` + "\n" +
+                            `` + "\n" +
+                            `                charCodeAt($str, i) {` + "\n" +
+                            `                    const str = this.cast($str);` + "\n" +
+                            `                    return str.charCodeAt(i >>> 0);` + "\n" +
+                            `                },` + "\n" +
+                            `` + "\n" +
+                            `                codePointAt($str, i) {` + "\n" +
+                            `                    const str = this.cast($str);` + "\n" +
+                            `` + "\n" +
+                            `                    i >>>= 0;` + "\n" +
+                            `                    if (i > str.length) throw new WebAssembly.RuntimeError("index exceeds passed string length.");` + "\n" +
+                            `` + "\n" +
+                            `                    return str.codePointAt(i);` + "\n" +
+                            `                },` + "\n" +
+                            `` + "\n" +
+                            `                equals(a, b) {` + "\n" +
+                            `                    if (` + "\n" +
+                            `                        (a !== null && typeof a !== "string") ||` + "\n" +
+                            `                        (b !== null && typeof b !== "string")`    + "\n" +
+                            `                    ) throw new WebAssembly.RuntimeError("externref obj is not a string or a null reference.");` + "\n" +
+                            `` + "\n" +
+                            `                    return a === b ? 1 : 0;` + "\n" +
+                            `                },` + "\n" +
+                            `` + "\n" +
+                            `                fromCharCode(code) {` + "\n" +
+                            `                    return String.fromCharCode(code >>> 0);` + "\n" +
+                            `                },` + "\n" +
+                            `` + "\n" +
+                            `                fromCodePoint(point) {` + "\n" +
+                            `                    point >>>= 0;` + "\n" +
+                            `                    if (point > 0x0010_ffff) throw new WebAssembly.RuntimeError("passed code point is not a valid Unicode code point.");` + "\n" +
+                            `` + "\n" +
+                            `                    return String.fromCodePoint(point);` + "\n" +
+                            `                },` + "\n" +
+                            `` + "\n" +
+                            `                length($str) {` + "\n" +
+                            `                    const str = this.cast($str);` + "\n" +
+                            `                    return str.length;` + "\n" +
+                            `                },` + "\n" +
+                            `` + "\n" +
+                            `                substring($str, iStart, iEnd) {` + "\n" +
+                            `                    const str = this.cast($str);` + "\n" +
+                            `` + "\n" +
+                            `                    iStart >>>= 0;` + "\n" +
+                            `                    iEnd   >>>= 0;` + "\n" +
+                            `` + "\n" +
+                            `                    if (iStart > iEnd || iStart > str.length) return "";` + "\n" +
+                            `                    return str.substring(iStart, iEnd);` + "\n" +
+                            `                },` + "\n" +
+                            `` + "\n" +
+                            `                test(obj) {` + "\n" +
+                            `                    return typeof obj === "string" ? 1 : 0;` + "\n" +
+                            `                },` + "\n" +
+                            `` + "\n" +
+                            `                fromCharCodeArray(_arr, _iStart, _iEnd) {` + "\n" +
+                            `                    throw new WebAssembly.RuntimeError("wasm:js-string.fromCharCodeArray cannot be polyfilled as it requires WASM GC arrays, which cannot be accessed or mutated in JavaScript. It is recommended that you implement the function yourself using wasm:js-string.fromCharCode instead.");` + "\n" +
+                            `                },` + "\n" +
+                            `` + "\n" +
+                            `                intoCharCodeArray(_str, _arr, _iStart) {` + "\n" +
+                            `                    throw new WebAssembly.RuntimeError("wasm:js-string.intoCharCodeArray cannot be polyfilled as it requires WASM GC arrays, which cannot be accessed or mutated in JavaScript. It is recommended that you implement the function yourself using wasm:js-string.charCodeAt instead.");` + "\n" +
+                            `                }` + "\n" +
+                            `            };` + "\n" +
+                            `` + "\n" +
+                            `            imports = { ...imports, ["wasm:js-string"]: jsString };` + "\n" +
+                            `        }` + "\n" +
+                            `    }` + "\n" +
+                            `` + "\n" +
+                            `    if ("importedStringConstants" in compileOptions) {` + "\n" +
+                            `        const strModuleName = compileOptions.importedStringConstants;` + "\n" +
+                            `` + "\n" +
+                            `        const wasmModule = await WebAssembly.compile(bfr);` + "\n" +
+                            `        const importDescriptors = WebAssembly.Module.imports(wasmModule);` + "\n" +
+                            `` + "\n" +
+                            `        const strModule = {};` + "\n" +
+                            `` + "\n" +
+                            `        const strConstants = importDescriptors.filter((desc) => desc.module === strModuleName && desc.kind === "global").map((desc) => desc.name);` + "\n" +
+                            `        for (const str of strConstants) strModule[str] = str;` + "\n" +
+                            `` + "\n" +
+                            `        imports = { ...imports, [strModuleName]: strModule };` + "\n" +
+                            `    }`
+                    ) + "\n" +
+                    `` + "\n" +
+                    `    return [imports];`
+            ) + "\n" +
         `}` + "\n";
 
     const transformWasm = (bfr: Uint8Array, filename: string) => inlineAssemblies || isServing
         ?
         `
-        export default async (imports = {}) => {
+        import { generateNextArguments } from "${GENERATE_NEXT_ARGS_ID}";
+
+        export default async (imports = {}, compileOptions = null) => {
             const data = atob("${btoa(String.fromCharCode(...bfr))}");
 
             const len = data.length;
@@ -88,13 +240,13 @@ const wat2WasmPlugin = (options: Wat2WasmOptions = {}): Plugin => {
             const bfr = new Uint8Array(len);
             for (let i = 0; i < len; i++) bfr[i] = data.charCodeAt(i);
 
-            return WebAssembly.instantiate(bfr).then((src) => src.instance.exports);
+            return WebAssembly.instantiate(bfr, ... await generateNextArguments(imports, compileOptions)).then((src) => src.instance.exports);
         };
         `
         :
         `
         import { fetchWasm } from "${FETCH_WASM_ID}";
-        export default (imports = {}) => fetchWasm("${filename.startsWith(".") ? filename : "./" + filename}", import.meta.url, imports).then((src) => src.instance.exports);
+        export default (imports = {}, compileOptions = null) => fetchWasm("${filename.startsWith(".") ? filename : "./" + filename}", import.meta.url, imports, compileOptions).then((src) => src.instance.exports);
         `;
 
     return {
@@ -150,8 +302,12 @@ const wat2WasmPlugin = (options: Wat2WasmOptions = {}): Plugin => {
                 }
 
                 const fetchWasmPathRel = path.relative(pathParent, FETCH_WASM_PATH).replaceAll("\\", "/");
+                const generateNextArgsPathRel = path.relative(pathParent, GENERATE_NEXT_ARGS_PATH).replaceAll("\\", "/");
 
-                bundle.code = bundle.code.replaceAll(FETCH_WASM_ID, fetchWasmPathRel.startsWith(".") ? fetchWasmPathRel : "./" + fetchWasmPathRel);
+                bundle.code =
+                    bundle.code
+                        .replaceAll(FETCH_WASM_ID, fetchWasmPathRel.startsWith(".") ? fetchWasmPathRel : "./" + fetchWasmPathRel)
+                        .replaceAll(GENERATE_NEXT_ARGS_ID, generateNextArgsPathRel.startsWith(".") ? generateNextArgsPathRel : "./" + generateNextArgsPathRel);
             }
         },
 
@@ -168,14 +324,38 @@ const wat2WasmPlugin = (options: Wat2WasmOptions = {}): Plugin => {
             fetchWasmEmit = !(inlineAssemblies || isServing);
         },
 
+        resolveId(id: string) {
+            if (id === FETCH_WASM_ID) return "\0" + FETCH_WASM_ID;
+            if (id === GENERATE_NEXT_ARGS_ID) return "\0" + GENERATE_NEXT_ARGS_ID;
+
+            return null;
+        },
+
+        load(id: string) {
+            if (!id.startsWith("\0")) return null;
+
+            if (id.endsWith(FETCH_WASM_ID)) return fetchWasmFunc;
+            if (id.endsWith(GENERATE_NEXT_ARGS_ID)) return generateNextArgumentsFunc;
+
+            return null;
+        },
+
         async closeBundle() {
             if (fetchWasmEmit) {
                 const fetchWasmPath = path.join(rootDist, FETCH_WASM_PATH).replaceAll("\\", "/");
                 const fetchWasmParent = path.join(fetchWasmPath, "../").replaceAll("\\", "/");
 
+                const generateNextArgsFilename = path.basename(GENERATE_NEXT_ARGS_PATH);
+
                 await fs.mkdir(fetchWasmParent, { recursive: true });
-                await fs.writeFile(fetchWasmPath, fetchWasmFunc, "utf-8");
+                await fs.writeFile(fetchWasmPath, fetchWasmFunc.replaceAll(GENERATE_NEXT_ARGS_ID, "./" + generateNextArgsFilename), "utf-8");
             }
+
+            const generateNextArgsPath = path.join(rootDist, GENERATE_NEXT_ARGS_PATH).replaceAll("\\", "/");
+            const generateNextArgsParent = path.join(generateNextArgsPath, "../").replaceAll("\\", "/");
+
+            await fs.mkdir(generateNextArgsParent, { recursive: true });
+            await fs.writeFile(generateNextArgsPath, generateNextArgumentsFunc, "utf-8");
         },
 
         configResolved(config) {

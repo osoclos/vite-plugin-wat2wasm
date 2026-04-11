@@ -34,7 +34,9 @@
     "files": ["dist"],
     "exports": {
         ".": "./dist/index.js",
+
         "./types": "./dist/types.d.ts",
+        "./types-next": "./dist/types-next.d.ts",
 
         "./package.json": "./package.json"
     },

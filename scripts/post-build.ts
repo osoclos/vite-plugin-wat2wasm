@@ -1,7 +1,9 @@
 import fs from "fs";
 import path from "path";
 
-const pathIn  = path.join(__dirname, "../src/types.d.ts");
-const pathOut = path.join(__dirname, "../dist", path.basename(pathIn));
+copyFile(path.join(__dirname, "../src/types.d.ts"), path.join(__dirname, "../dist/types.d.ts"));
+copyFile(path.join(__dirname, "../src/types-next.d.ts"), path.join(__dirname, "../dist/types-next.d.ts"));
 
-fs.writeFileSync(pathOut, fs.readFileSync(pathIn));
+function copyFile(pathIn: string, pathOut: string) {
+    fs.writeFileSync(pathOut, fs.readFileSync(pathIn));
+}

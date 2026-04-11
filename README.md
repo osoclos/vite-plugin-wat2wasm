@@ -46,6 +46,8 @@ or include it in your `tsconfig.json` file
 }
 ```
 
+If you wish to use the `compileOptions` parameter supported on later browser versions by native WebAssembly instantiation functions, you can use `"vite-plugin-wat2wasm/types-next"` instead of `"vite-plugin-wat2wasm/types"` for your types.
+
 ### Using it in your application/library
 
 ``` ts
@@ -106,6 +108,8 @@ The configuration settings for `vite-plugin-wat2wasm`.
 - `parser?:` [`WasmParserOptions`](#wasmparseroptions) `= {}` - Configures WebAssembly features you wish to enable for `vite-plugin-wat2wasm`.
 - `generator?:` [`WasmGeneratorOptions`](#wasmgeneratoroptions) `= {}` - Configures how `vite-plugin-wat2wasm` to generate WebAssembly output.
 
+- `enableCompileOptions?`: [`EnableCompileOptionsValue`](#enablecompileoptionsvalue) - Determine whether the `compileOptions` parameter will be used when instantiating WebAssembly modules and how will it be resolved if there is no support.
+
 - `fetchTargets?:` [`FetchTarget`](#fetchtarget) `|` [`FetchTarget`](#fetchtarget)`[]` `= ["browser" | "node"]` - Determines the runtimes that can be targeted when the WebAssembly modules are fetched. Does not affect anything if `inlineAssemblies` is set to `true`.
 
 - `utilDirPath?:` `string` - The directory path where utility functions used by JavaScript files to retrieve and interact with WebAssembly modules will be stored.
@@ -118,11 +122,18 @@ See [`wabt.WasmFeatures`](https://github.com/AssemblyScript/wabt.js/blob/main/RE
 
 See [`wabt.ToBinaryOptions`](https://github.com/AssemblyScript/wabt.js/blob/main/README.md) for more info.
 
+### `EnableCompileOptionsValue`
+
+The values supported by the `enableCompileOptions` setting in the plugin configuration object.
+
+- `boolean` - Force to enable or disable the `compileOptions` parameter.
+
+- `"auto"` - Automatically use the `compileOptions` parameter if it is supported and provided, else it warns the user and instanatiates WebAssembly modules without it.
+- `"polyfill"` - Polyfills features based on the `compileOptions` argument if it is not supported natively.
+
 ### `FetchTarget`
 
 The runtimes supported as targets when fetching WebAssembly modules.
-
-#### List of Values
 
 - `"browser"` - Enable support for browser-based runtimes.
 - `"node"` - Enable support for Node-based runtimes.

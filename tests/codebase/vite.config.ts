@@ -3,5 +3,5 @@ import wat2WasmPlugin from "../../src";
 
 export default defineConfig({
     root: __dirname,
-    plugins: [wat2WasmPlugin()]
+    plugins: [wat2WasmPlugin({ enableCompileOptions:true })]
 });
