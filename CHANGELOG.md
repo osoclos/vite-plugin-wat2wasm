@@ -2,6 +2,16 @@
 
 This file details the changes that happen in `vite-plugin-wat2wasm`.
 
+## v2.2.0 (12/04/26 - 12:16pm|UTC+8)
+
+- Additions
+
+- - Added the ability to use the `compileOptions` parameter from native WebAssembly instantiation functions in runtimes that support them, with the option to resolve them using `enableCompileOptions` configuration setting if it is not supported otherwise.
+
+- Fixes
+
+- - Re-introduced usage of import objects in WebAssembly modules where they are inlined within JavaScript files.
+
 ## v2.1.2 (10/04/26 - 3:48pm|UTC+8)
 
 - Fixes
