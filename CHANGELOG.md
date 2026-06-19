@@ -2,6 +2,12 @@
 
 This file details the changes that happen in `vite-plugin-wat2wasm`.
 
+## v2.2.1 (19/06/26 - 11:33pm|UTC+8)
+
+- Fixes
+
+- - Changed wabt dependency to a peer dependency.
+
 ## v2.2.0 (12/04/26 - 12:16pm|UTC+8)
 
 - Additions
