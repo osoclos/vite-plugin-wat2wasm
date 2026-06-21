@@ -2,6 +2,12 @@
 
 This file details the changes that happen in `vite-plugin-wat2wasm`.
 
+## v2.2.2 (21/06/26 - 11:51am|UTC+8)
+
+- Fixes
+
+- - Removed `utilDirPath` option as files are already copied as virtual modules.
+
 ## v2.2.1 (19/06/26 - 11:33pm|UTC+8)
 
 - Fixes

@@ -1,6 +1,4 @@
-import fs from "fs/promises";
 import path from "path";
-
 import crypto from "crypto";
 
 import type { Plugin } from "vite";
@@ -32,9 +30,6 @@ interface Wat2WasmOptions {
 
     /** Determines the runtimes that can be targeted when the WebAssembly modules are fetched. Does not affect anything if `inlineAssemblies` is set to `true`. */
     fetchTargets?: FetchTarget | FetchTarget[];
-
-    /** The directory path where utility functions used by JavaScript files to retrieve and interact with WebAssembly modules will be stored. */
-    utilDirPath?: string;
 }
 
 /** The values supported by the `enableCompileOptions` setting in the plugin configuration object. */
@@ -57,8 +52,7 @@ const wat2WasmPlugin = (options: Wat2WasmOptions = {}): Plugin => {
 
         enableCompileOptions = "auto",
 
-        fetchTargets = ["browser", "node"],
-        utilDirPath = "./__wasm-utils"
+        fetchTargets = ["browser", "node"]
     } = options;
 
     const PLUGIN_ID: string = "wat2wasm";
@@ -66,11 +60,7 @@ const wat2WasmPlugin = (options: Wat2WasmOptions = {}): Plugin => {
     const FETCH_WASM_ID   = PLUGIN_ID + ":" + crypto.randomBytes(4).toString("hex");
     const GENERATE_NEXT_ARGS_ID   = PLUGIN_ID + ":" + crypto.randomBytes(4).toString("hex");
 
-    const FETCH_WASM_PATH = path.join(utilDirPath, "fetchWasm.js");
-    const GENERATE_NEXT_ARGS_PATH = path.join(utilDirPath, "generateNextArguments.js");
-
     let root: string;
-    let rootDist: string;
 
     let isServing: boolean;
 
@@ -78,8 +68,6 @@ const wat2WasmPlugin = (options: Wat2WasmOptions = {}): Plugin => {
     const targetsNode    = fetchTargets.includes("node"   );
 
     const filesToEmit: Record<string, Uint8Array> = {};
-
-    let fetchWasmEmit: boolean = false;
 
     const fetchWasmFunc =
         `import { generateNextArguments } from "${GENERATE_NEXT_ARGS_ID}";` + "\n" +
@@ -300,14 +288,6 @@ const wat2WasmPlugin = (options: Wat2WasmOptions = {}): Plugin => {
                         fileName: pathEmittedFile
                     });
                 }
-
-                const fetchWasmPathRel = path.relative(pathParent, FETCH_WASM_PATH).replaceAll("\\", "/");
-                const generateNextArgsPathRel = path.relative(pathParent, GENERATE_NEXT_ARGS_PATH).replaceAll("\\", "/");
-
-                bundle.code =
-                    bundle.code
-                        .replaceAll(FETCH_WASM_ID, fetchWasmPathRel.startsWith(".") ? fetchWasmPathRel : "./" + fetchWasmPathRel)
-                        .replaceAll(GENERATE_NEXT_ARGS_ID, generateNextArgsPathRel.startsWith(".") ? generateNextArgsPathRel : "./" + generateNextArgsPathRel);
             }
         },
 
@@ -316,12 +296,8 @@ const wat2WasmPlugin = (options: Wat2WasmOptions = {}): Plugin => {
                 const data = this.data as any;
 
                 root = (data.outputOptions.preserveModules ? data.outputOptions.preserveModulesRoot : path.join(data.outputOptions.dir, "../")).replaceAll("\\", "/");
-                rootDist = data.outputOptions.dir.replaceAll("\\", "/");
-
                 isServing = false;
             }
-
-            fetchWasmEmit = !(inlineAssemblies || isServing);
         },
 
         resolveId(id: string) {
@@ -340,28 +316,8 @@ const wat2WasmPlugin = (options: Wat2WasmOptions = {}): Plugin => {
             return null;
         },
 
-        async closeBundle() {
-            if (fetchWasmEmit) {
-                const fetchWasmPath = path.join(rootDist, FETCH_WASM_PATH).replaceAll("\\", "/");
-                const fetchWasmParent = path.join(fetchWasmPath, "../").replaceAll("\\", "/");
-
-                const generateNextArgsFilename = path.basename(GENERATE_NEXT_ARGS_PATH);
-
-                await fs.mkdir(fetchWasmParent, { recursive: true });
-                await fs.writeFile(fetchWasmPath, fetchWasmFunc.replaceAll(GENERATE_NEXT_ARGS_ID, "./" + generateNextArgsFilename), "utf-8");
-            }
-
-            const generateNextArgsPath = path.join(rootDist, GENERATE_NEXT_ARGS_PATH).replaceAll("\\", "/");
-            const generateNextArgsParent = path.join(generateNextArgsPath, "../").replaceAll("\\", "/");
-
-            await fs.mkdir(generateNextArgsParent, { recursive: true });
-            await fs.writeFile(generateNextArgsPath, generateNextArgumentsFunc, "utf-8");
-        },
-
         configResolved(config) {
             root = config.root.replaceAll("\\", "/");
-            rootDist = path.join(root, config.build.outDir).replaceAll("\\", "/");
-
             isServing = config.command === "serve";
         }
     };

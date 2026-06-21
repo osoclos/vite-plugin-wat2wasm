@@ -112,8 +112,6 @@ The configuration settings for `vite-plugin-wat2wasm`.
 
 - `fetchTargets?:` [`FetchTarget`](#fetchtarget) `|` [`FetchTarget`](#fetchtarget)`[]` `= ["browser" | "node"]` - Determines the runtimes that can be targeted when the WebAssembly modules are fetched. Does not affect anything if `inlineAssemblies` is set to `true`.
 
-- `utilDirPath?:` `string` - The directory path where utility functions used by JavaScript files to retrieve and interact with WebAssembly modules will be stored.
-
 ### `WasmParserOptions`
 
 See [`wabt.WasmFeatures`](https://github.com/AssemblyScript/wabt.js/blob/main/README.md) for more info.
