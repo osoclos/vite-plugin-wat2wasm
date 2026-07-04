@@ -47,8 +47,10 @@
 
         "dev-library": "concurrently 'bun run build-watch' 'tsdown --watch --config tests/library/tsdown.config.ts' 'vite --config tests/library/tests/vite.config.ts'",
 
-        "build": "tsdown && bun run scripts/post-build.ts",
-        "build-watch": "tsdown --watch --on-success 'bun run scripts/post-build.ts'",
+        "build": "tsdown && bun run copy-dts-files",
+        "build-watch": "tsdown --watch --on-success 'bun run copy-dts-files'",
+
+        "copy-dts-files": "xcopy '.\\src\\*.d.ts' '.\\dist' /I /Y",
 
         "bump": "bun run build && bumpp"
     },
