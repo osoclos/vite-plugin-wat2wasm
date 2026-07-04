@@ -2,6 +2,12 @@
 
 This file details the changes that happen in `vite-plugin-wat2wasm`.
 
+## v2.2.3 (4/07/26 - 4:51pm|UTC+8)
+
+- Fixes
+
+- - Removed the need to specify the types for `*.wat` modules for `tsconfig.json` files.
+
 ## v2.2.2 (21/06/26 - 11:51am|UTC+8)
 
 - Fixes

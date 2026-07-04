@@ -26,8 +26,6 @@ export default defineConfig({
 });
 ```
 
-If you wish to use the `compileOptions` parameter supported on later browser versions by native WebAssembly instantiation functions, you can use `"vite-plugin-wat2wasm/types-next"` instead of `"vite-plugin-wat2wasm/types"` for your types.
-
 ### Using it in your application/library
 
 ``` ts
