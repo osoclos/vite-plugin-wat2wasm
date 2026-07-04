@@ -34,10 +34,6 @@
     "files": ["dist"],
     "exports": {
         ".": "./dist/index.js",
-
-        "./types": "./dist/types.d.ts",
-        "./types-next": "./dist/types-next.d.ts",
-
         "./package.json": "./package.json"
     },
 
@@ -47,10 +43,8 @@
 
         "dev-library": "concurrently 'bun run build-watch' 'tsdown --watch --config tests/library/tsdown.config.ts' 'vite --config tests/library/tests/vite.config.ts'",
 
-        "build": "tsdown && bun run copy-dts-files",
-        "build-watch": "tsdown --watch --on-success 'bun run copy-dts-files'",
-
-        "copy-dts-files": "xcopy '.\\src\\*.d.ts' '.\\dist' /I /Y",
+        "build": "tsdown",
+        "build-watch": "tsdown --watch",
 
         "bump": "bun run build && bumpp"
     },

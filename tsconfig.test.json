@@ -4,7 +4,7 @@
 
     "compilerOptions": {
         // Modules
-        "types": ["vite/client", "./src/types.d.ts"],
+        "types": ["vite/client"],
 
         // Emit
         "declaration": false,

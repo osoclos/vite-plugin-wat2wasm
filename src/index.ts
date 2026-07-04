@@ -2,7 +2,10 @@ import path from "path";
 import crypto from "crypto";
 
 import type { Plugin } from "vite";
+
 import initWabt from "wabt";
+
+import "./types.d.ts";
 
 const wabt = await initWabt();
 
