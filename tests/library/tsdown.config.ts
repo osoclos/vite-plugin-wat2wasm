@@ -1,5 +1,5 @@
 import { defineConfig } from "tsdown";
-import wat2WasmPlugin from "../../src/index.ts";
+import wat2WasmPlugin from "../../dist/index.js";
 
 export default defineConfig({
     entry: "src/index.ts",

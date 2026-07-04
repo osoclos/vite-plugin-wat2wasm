@@ -7,6 +7,13 @@
         <title>Library Testing</title>
     </head>
     <body>
+        <div>
+            <label><math><mi>a</mi></math>: <input id="inA" type="number" value="0" min="-2147483648" max="2147483647" step="1"></label>
+            <label><math><mi>b</mi></math>: <input id="inB" type="number" value="0" min="-2147483648" max="2147483647" step="1"></label>
+        </div>
+
+        <p><math><mi>a</mi><mo>-</mo><mi>b</mi></math>: <span id="out">---</span></p>
+
         <script type="module" src="src/index.ts"></script>
     </body>
 </html>
